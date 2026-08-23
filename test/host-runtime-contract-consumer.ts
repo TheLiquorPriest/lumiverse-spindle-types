@@ -131,10 +131,29 @@ const editorCloseMessage: WorkerToHost = {
   requestId: "transport-close",
   editorRequestId,
 };
+const skippedThumbnailUpload = spindle.images.upload({
+  data: new Uint8Array([1, 2, 3]),
+  filename: "card.avif",
+  mime_type: "image/avif",
+  skip_thumbnail_processing: true,
+});
+const skippedThumbnailDataUrlUpload = spindle.images.uploadFromDataUrl(
+  "data:image/avif;base64,AQID",
+  { skip_thumbnail_processing: true },
+);
+const skippedThumbnailDataUrlMessage: WorkerToHost = {
+  type: "images_upload_from_data_url",
+  requestId: "transport-image-upload",
+  dataUrl: "data:image/avif;base64,AQID",
+  skip_thumbnail_processing: true,
+};
 void editorResult;
 void editorClose;
 void editorOpenMessage;
 void editorCloseMessage;
+void skippedThumbnailUpload;
+void skippedThumbnailDataUrlUpload;
+void skippedThumbnailDataUrlMessage;
 
 declare const ctx: SpindleFrontendContext;
 const frontendHost: SpindleHostDescriptorV1 = ctx.host;

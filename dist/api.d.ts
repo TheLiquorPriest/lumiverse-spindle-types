@@ -835,6 +835,8 @@ export interface ImageUploadDTO {
     owner_character_id?: string;
     /** Optional chat ownership tag for the persisted image. */
     owner_chat_id?: string;
+    /** Persist the original asset without generating thumbnail derivatives. */
+    skip_thumbnail_processing?: boolean;
     /** For video uploads, strip any audio tracks from the stored output when possible. */
     strip_audio?: boolean;
     /** For video uploads, transcode the primary stored asset to this codec. */
@@ -848,6 +850,8 @@ export interface ImageUploadFromDataUrlOptionsDTO {
     owner_character_id?: string;
     /** Optional chat ownership tag for the persisted image. */
     owner_chat_id?: string;
+    /** Persist the original asset without generating thumbnail derivatives. */
+    skip_thumbnail_processing?: boolean;
     /** For operator-scoped extensions. */
     userId?: string;
 }
@@ -4325,6 +4329,7 @@ export type WorkerToHost = {
     originalFilename?: string;
     owner_character_id?: string;
     owner_chat_id?: string;
+    skip_thumbnail_processing?: boolean;
     userId?: string;
 } | {
     type: "images_delete";
