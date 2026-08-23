@@ -3288,6 +3288,14 @@ export interface ProviderManager {
 export type WorkerToHost =
   | { type: "subscribe_event"; event: string }
   | { type: "unsubscribe_event"; event: string }
+  | {
+      type: "register_frontend_runtime_capability";
+      capability: import("./frontend-capabilities.js").SpindleFrontendRuntimeCapability;
+    }
+  | {
+      type: "unregister_frontend_runtime_capability";
+      capability: import("./frontend-capabilities.js").SpindleFrontendRuntimeCapability;
+    }
   | { type: "register_macro"; definition: MacroDefinitionDTO }
   | { type: "unregister_macro"; name: string }
   | { type: "update_macro_value"; name: string; value: string }

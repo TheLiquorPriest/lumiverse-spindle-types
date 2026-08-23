@@ -135,6 +135,14 @@ export interface SpindleAPI {
     /** Immutable host compatibility descriptor for this extension runtime. */
     readonly host: SpindleHostDescriptorV1;
     /**
+     * Declare frontend behavior that the host must account for before dependent
+     * UI is revealed. The returned disposer removes the declaration. Repeated
+     * declarations of the same capability are reference-counted by the worker.
+     */
+    frontendCapabilities: {
+        declare(capability: import("./frontend-capabilities.js").SpindleFrontendRuntimeCapability): () => void;
+    };
+    /**
      * Subscribe to permission grant/revoke changes for this extension only.
      * This is delivered directly by the worker host and does not subscribe to
      * the global backend event bus.

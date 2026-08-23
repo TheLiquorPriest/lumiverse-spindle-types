@@ -1,5 +1,15 @@
 # Lumiverse Spindle Types - Technical Changelog
 
+## Release v0.6.22
+
+- Added `spindle.frontendCapabilities.declare()` and the
+  `SpindleFrontendRuntimeCapability` contract.
+- Added the `message_tag_interceptor` runtime capability so hosts can delay
+  initial chat reveal until declared frontend interceptors attach.
+- Added worker protocol messages for capability registration/retraction and
+  `ExtensionInfo.frontend_runtime_capabilities` bootstrap metadata.
+- Advertised host support through `frontend-runtime-capabilities-v1`.
+
 ## Release v0.6.20
 
 This release introduces major type definitions and contracts for **Frontend Extensibility V2**, **Provider Runtime & Broker Protocols**, **Host Surface Handles**, **Extended Settings Tab Customization**, and **SDK Packaging & Consumer Verification**.

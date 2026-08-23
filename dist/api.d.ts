@@ -2974,6 +2974,12 @@ export type WorkerToHost = {
     type: "unsubscribe_event";
     event: string;
 } | {
+    type: "register_frontend_runtime_capability";
+    capability: import("./frontend-capabilities.js").SpindleFrontendRuntimeCapability;
+} | {
+    type: "unregister_frontend_runtime_capability";
+    capability: import("./frontend-capabilities.js").SpindleFrontendRuntimeCapability;
+} | {
     type: "register_macro";
     definition: MacroDefinitionDTO;
 } | {

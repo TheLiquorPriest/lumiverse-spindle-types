@@ -49,8 +49,8 @@ export interface SpindleStorageSeedFile {
     /** If true, fail install/import/update when source path is missing */
     required?: boolean;
 }
-export type SpindlePermission = import("./permissions").SpindlePermission;
-export type SpindleCapability = import("./capabilities").SpindleCapability;
+export type SpindlePermission = import("./permissions.js").SpindlePermission;
+export type SpindleCapability = import("./capabilities.js").SpindleCapability;
 /** Regex for validating extension identifiers */
 export declare const IDENTIFIER_PATTERN: RegExp;
 export declare function validateIdentifier(id: string): boolean;

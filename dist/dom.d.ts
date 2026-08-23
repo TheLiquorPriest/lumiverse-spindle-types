@@ -1205,7 +1205,7 @@ export interface SpindleFrontendContext {
     };
     /** Take over display-time content resolution in the browser. */
     display?: SpindleDisplayResolverRegistry;
-    manifest: import("./manifest").SpindleManifest;
+    manifest: import("./manifest.js").SpindleManifest;
     settings?: SpindleSettingsAPI;
     registerComponentOverride?(options: SpindleComponentOverrideOptions): SpindleComponentOverrideHandle;
     registerDomDecorator?(options: SpindleDomDecoratorOptions): SpindleDomDecoratorHandle;

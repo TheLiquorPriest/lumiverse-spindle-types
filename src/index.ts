@@ -43,6 +43,12 @@ export { ALL_CAPABILITIES, isValidCapability } from "./capabilities.js";
 
 export { SpindleEvent, CoreEventType } from "./events.js";
 
+export type { SpindleFrontendRuntimeCapability } from "./frontend-capabilities.js";
+export {
+  ALL_FRONTEND_RUNTIME_CAPABILITIES,
+  isValidFrontendRuntimeCapability,
+} from "./frontend-capabilities.js";
+
 export type {
   LlmMessagePartDTO,
   LlmMessageDTO,
