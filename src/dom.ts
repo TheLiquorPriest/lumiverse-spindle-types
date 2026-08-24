@@ -964,14 +964,14 @@ export interface SpindleDisplayResolverRegistry {
 }
 
 export interface SpindleSettingsAPI {
-  get(key: string): Promise<unknown> | unknown;
-  set(key: string, value: unknown): Promise<void> | void;
-  remove(key: string): Promise<void> | void;
-  watch(key: string, listener: (value: unknown) => void): () => void;
-  core: {
-    get(key: string): Promise<unknown> | unknown;
-    watch(key: string, listener: (value: unknown) => void): () => void;
-    list(): Promise<readonly string[]> | readonly string[];
+  get<T>(key: string): Promise<T | undefined>;
+  set<T>(key: string, value: T): Promise<void>;
+  remove(key: string): Promise<void>;
+  watch<T>(key: string, listener: (value: T | undefined) => void): () => void;
+  readonly core: {
+    get<T>(key: string): T | undefined;
+    watch<T>(key: string, listener: (value: T) => void): () => void;
+    list(): Array<{ key: string; permission: string | null }>;
     isReady(): boolean;
   };
 }
@@ -980,40 +980,41 @@ export interface SpindleSettingsTabSection {
   readonly key: string;
   readonly titleKey: string;
   readonly titleFallback: string;
-  readonly keywords?: readonly string[];
+  readonly keywords: readonly string[];
 }
 
 export interface SpindleSettingsTabOptions {
-  /** Unique tab identifier. A shared tab id may belong to core or to another extension. */
-  id: string;
-  /** Tab title shown in settings navigation. */
-  title: string;
+  /** A shared tab id may belong to core or to another extension. */
+  readonly id: string;
+  /** Metadata is ignored when a core tab owns this id. */
+  readonly title?: string;
   /** Short label for compact layouts. */
-  shortName?: string;
+  readonly shortName?: string;
   /** Inline SVG string for the tab icon. */
-  iconSvg?: string;
+  readonly iconSvg?: string;
   /** Description for search and command palette. */
-  description?: string;
+  readonly description?: string;
   /** Keywords for search indexing. */
-  keywords?: readonly string[];
+  readonly keywords?: readonly string[];
   /** Sub-sections within the settings tab for search indexing and navigation. */
-  sections?: readonly SpindleSettingsTabSection[];
+  readonly sections?: readonly SpindleSettingsTabSection[];
   /**
    * Relative tab position: 'top', 'bottom', 'after-display', 'before-chat',
    * 'after-<tabId>', 'before-<tabId>', or any specific tab identifier.
    */
-  position?: 'top' | 'bottom' | `after-${string}` | `before-${string}` | string;
+  readonly position?: string;
   /** Body order among registrants sharing a tab. Defaults to 100. */
-  order?: number;
-  /** Optional render callback for mounting tab content into root. */
-  render?: (root: HTMLElement) => void | (() => void);
+  readonly order?: number;
 }
 
 export interface SpindleSettingsTabHandle {
-  readonly id: string;
+  readonly registrationId: string;
+  readonly tabId: string;
   readonly root: HTMLElement;
-  update(options?: Partial<SpindleSettingsTabOptions>): void;
+  setTitle(title: string): void;
+  activate(): void;
   destroy(): void;
+  onActivate(callback: () => void): () => void;
 }
 
 export interface SpindleStateSelectors {
@@ -1033,17 +1034,61 @@ export interface SpindleGeometryAPI {
   createResizeController(element: Element, listener: (rect: DOMRect) => void): SpindleResizeController;
 }
 
-export interface SpindleHostSurfaceInfo {
+export type SpindleHostSurfaceKind =
+  | "drawer_tab"
+  | "settings_tab"
+  | "command"
+  | "route"
+  | "modal"
+  | "input_bar_action"
+  | "ext_command";
+
+export interface SpindleHostSurfaceRef {
+  kind: SpindleHostSurfaceKind;
   id: string;
-  title?: string;
-  capabilities?: readonly string[];
 }
 
+export type SpindleHostActionJsonValue =
+  | null
+  | boolean
+  | number
+  | string
+  | SpindleHostActionJsonValue[]
+  | { [key: string]: SpindleHostActionJsonValue };
+
+export type SpindleHostActionParams = Record<string, SpindleHostActionJsonValue>;
+
+export interface SpindleHostSurfaceInfo {
+  kind: SpindleHostSurfaceKind;
+  id: string;
+  label: string;
+  description?: string;
+  keywords?: string[];
+  iconName?: string;
+  iconSvg?: string;
+  scope?: "global" | "chat" | "chat-idle" | "landing" | "character";
+  role?: "admin" | "owner";
+  owner?: string;
+  invocable?: boolean;
+}
+
+export interface SpindleHostSurfaceTarget {
+  kind: string;
+  id: string;
+  parentId?: string;
+}
+
+export type SpindleHostSurfaceTargetHandler = (target: SpindleHostSurfaceTarget) => void;
+
 export interface SpindleHostSurfaceAPI {
-  list(): readonly SpindleHostSurfaceInfo[] | Promise<readonly SpindleHostSurfaceInfo[]>;
-  subscribe(listener: (surfaces: readonly SpindleHostSurfaceInfo[]) => void): () => void;
-  invoke(surfaceId: string, method: string, params?: unknown): Promise<unknown>;
-  registerDeepLinkTarget(target: string, handler: (params: Record<string, string>) => void): () => void;
+  list(kinds?: readonly SpindleHostSurfaceKind[]): SpindleHostSurfaceInfo[];
+  subscribe(listener: (surfaces: SpindleHostSurfaceInfo[]) => void): () => void;
+  invoke(ref: SpindleHostSurfaceRef, params?: SpindleHostActionParams): void | Promise<void>;
+  registerDeepLinkTarget(
+    kind: string,
+    id: string,
+    handler: SpindleHostSurfaceTargetHandler,
+  ): () => void;
 }
 
 export interface SpindleComponentOverrideOptions {

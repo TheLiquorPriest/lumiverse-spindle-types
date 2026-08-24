@@ -568,10 +568,15 @@ export type SpindleCloseButtonHandle = SpindleMountedComponent<SpindleCloseButto
  * ```
  */
 /** Handle returned by {@link SpindleComponentsHelper.mountHostSurface}. */
+export type SpindleHostSurfaceJsonValue = null | boolean | number | string | readonly SpindleHostSurfaceJsonValue[] | {
+    readonly [key: string]: SpindleHostSurfaceJsonValue;
+};
+export type SpindleHostSurfaceProps = Record<string, SpindleHostSurfaceJsonValue>;
+export type SpindleHostSurfaceEventHandler = (payload: SpindleHostSurfaceJsonValue) => void;
 export interface SpindleHostSurfaceHandle {
-    update(props?: Record<string, unknown>): void;
+    update(props: SpindleHostSurfaceProps): void;
     destroy(): void;
-    on(event: string, handler: (payload: unknown) => void): () => void;
+    on(event: string, handler: SpindleHostSurfaceEventHandler): () => void;
 }
 export interface SpindleComponentsHelper {
     mountTextInput(target: SpindleComponentTarget, options?: SpindleTextInputOptions): SpindleTextInputHandle;
@@ -592,5 +597,5 @@ export interface SpindleComponentsHelper {
     mountCloseButton(target: SpindleComponentTarget, options?: SpindleCloseButtonOptions): SpindleCloseButtonHandle;
     mountLoomBlockEditor(target: SpindleComponentTarget, options: SpindleLoomBlockEditorOptions): SpindleLoomBlockEditorHandle;
     /** Mount a host-owned named surface into extension-owned DOM. */
-    mountHostSurface(target: SpindleComponentTarget, surfaceId: string, props?: Record<string, unknown>): SpindleHostSurfaceHandle;
+    mountHostSurface(target: SpindleComponentTarget, surfaceId: string, props?: SpindleHostSurfaceProps): SpindleHostSurfaceHandle;
 }

@@ -1,5 +1,14 @@
 # Lumiverse Spindle Types - Technical Changelog
 
+## Unreleased
+
+- Aligned `SpindleHostSurfaceAPI` with the host's ref-based invocation and
+  deep-link registration contracts.
+- Aligned settings-tab handles and settings storage reads with the concrete
+  frontend host implementations.
+- Restricted mounted host-surface props and event payloads to the host's
+  recursive JSON value contract.
+
 ## Release v0.6.22
 
 - Added `spindle.frontendCapabilities.declare()` and the

@@ -308,7 +308,13 @@ export type {
   SpindleStateSelectors,
   SpindleResizeController,
   SpindleGeometryAPI,
+  SpindleHostSurfaceKind,
+  SpindleHostSurfaceRef,
+  SpindleHostActionJsonValue,
+  SpindleHostActionParams,
   SpindleHostSurfaceInfo,
+  SpindleHostSurfaceTarget,
+  SpindleHostSurfaceTargetHandler,
   SpindleHostSurfaceAPI,
   SpindleComponentOverrideOptions,
   SpindleComponentOverrideHandle,
@@ -435,6 +441,9 @@ export type {
   SpindleLoomBlockEditorOptions,
   SpindleLoomBlockEditorHandle,
   SpindleComponentsHelper,
+  SpindleHostSurfaceJsonValue,
+  SpindleHostSurfaceProps,
+  SpindleHostSurfaceEventHandler,
   SpindleHostSurfaceHandle,
 } from "./components.js";
 
