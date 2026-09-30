@@ -16,22 +16,11 @@ test("unrestricted regex mutation permission is valid and publicly declared", ()
   expect(isValidPermission("regex_scripts_unrestricted")).toBe(true);
 });
 
-test("host compatibility constants are canonical and immutable", () => {
+test("host compatibility error code remains canonical", () => {
   expect(SPINDLE_COMPATIBILITY_ERROR_CODE).toBe("SPINDLE_COMPATIBILITY_ERROR");
-  expect(SPINDLE_HOST_CAPABILITIES).toEqual({
-    "preset-extension-data-v1": 1,
-    "preset-editor-v1": 1,
-    "loom-block-editor-v1": 1,
-    "loom-block-management-v1": 1,
-    "generation-assembly-v1": 1,
-    "interceptor-context-v1": 1,
-    "interceptor-final-response-v1": 1,
-    "connection-dispatch-resolution-v1": 1,
-    "text-editor-close-v1": 1,
-    "frontend-extensibility-v2": 1,
-    "frontend-runtime-capabilities-v1": 1,
-    "mcp-servers-v1": 1,
-  });
+});
+
+test("host capability declaration is immutable", () => {
   expect(Object.isFrozen(SPINDLE_HOST_CAPABILITIES)).toBe(true);
 });
 

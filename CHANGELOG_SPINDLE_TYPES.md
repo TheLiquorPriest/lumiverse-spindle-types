@@ -7,6 +7,9 @@
 - Added optional display processing state and authoritative macro source ownership.
 
 ## Unreleased
+- Added duplicate-safe prompt-block occurrence coordinates and required
+  cache-revision authority for block creation, updates, and deletion across the
+  public API and worker RPC contracts.
 - Version 0.6.33 adds prompt-local `outputOrder` to world-info interceptor
   entries and mutations, plus the `worldInfoOutputOrdering` host contract.
   Extensions can request insertion order after budget selection or clear an

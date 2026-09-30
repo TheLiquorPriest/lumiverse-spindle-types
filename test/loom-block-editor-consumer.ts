@@ -4,6 +4,10 @@ import type {
   PromptBlockPlacementDTO,
   PromptBlockSnapshotDTO,
   PromptBlockCreateDTO,
+  PromptBlockOccurrenceDTO,
+  PromptBlockMutationTargetDTO,
+  PromptBlockCreateAuthorityDTO,
+  PromptBlockCreateOptionsDTO,
   SpindleAPI,
   SpindleComponentTarget,
   SpindleComponentsHelper,
@@ -91,6 +95,22 @@ export async function compilePresetSnapshotContract(api: SpindleAPI): Promise<vo
     sealedSha256: "sha256:dialogue-frame",
   };
 
+  const occurrence: PromptBlockOccurrenceDTO = {
+    blockId: "block-1",
+    promptOrder: 0,
+  };
+  const target: PromptBlockMutationTargetDTO = {
+    ...occurrence,
+    expectedCacheRevision: 7,
+  };
+  const createAuthority: PromptBlockCreateAuthorityDTO = {
+    expectedCacheRevision: 7,
+    index: 0,
+  };
+  const createOptions: PromptBlockCreateOptionsDTO = {
+    ...createAuthority,
+    userId: "user-1",
+  };
   const preset = await api.presets.get("preset-1");
   if (preset) {
     const fromPreset = preset.prompt_order[0];
@@ -113,7 +133,7 @@ export async function compilePresetSnapshotContract(api: SpindleAPI): Promise<vo
       void fromListBlock.sealedSource.toUpperCase();
     }
   }
-  const fromGet = await api.presets.blocks.get("preset-1", "block-1");
+  const fromGet = await api.presets.blocks.get("preset-1", occurrence, "user-1");
   if (fromGet) {
     if (fromGet.placementBinding) {
       void fromGet.placementBinding.variableId;
@@ -122,22 +142,23 @@ export async function compilePresetSnapshotContract(api: SpindleAPI): Promise<vo
       void fromGet.sealedSource.toUpperCase();
     }
   }
-  const fromCreate = await api.presets.blocks.create("preset-1", editableBlock);
+  const fromCreate = await api.presets.blocks.create("preset-1", editableBlock, createOptions);
   if (fromCreate.placementBinding) {
     void fromCreate.placementBinding.variableId;
   }
   if (fromCreate.sealedSource) {
     void fromCreate.sealedSource.toUpperCase();
   }
-  const fromUpdate = await api.presets.blocks.update("preset-1", "block-1", {
+  const fromUpdate = await api.presets.blocks.update("preset-1", target, {
     name: "Updated dialogue",
-  });
+  }, "user-1");
   if (fromUpdate.placementBinding) {
     void fromUpdate.placementBinding.variableId;
   }
   if (fromUpdate.sealedSource) {
     void fromUpdate.sealedSource.toUpperCase();
   }
+  const fromDelete = await api.presets.blocks.delete("preset-1", target, "user-1");
   const groups = await api.presets.categories.list("preset-1");
   const category = groups[0]?.categoryBlock;
   if (category) {
@@ -198,9 +219,29 @@ export async function compilePresetSnapshotContract(api: SpindleAPI): Promise<vo
   // @ts-expect-error Read snapshots cannot cross the editable PromptBlockDTO boundary.
   const mutableBlockFromSnapshot: PromptBlockDTO = fromCreate;
   // @ts-expect-error Read snapshots cannot be supplied to block creation.
-  await api.presets.blocks.create("preset-1", fromCreate);
+  await api.presets.blocks.create("preset-1", fromCreate, createOptions);
   // @ts-expect-error Read snapshots cannot be supplied to block updates.
-  await api.presets.blocks.update("preset-1", "block-1", fromCreate);
+  await api.presets.blocks.update("preset-1", target, fromCreate);
+  // @ts-expect-error A string cannot identify one duplicate-safe occurrence.
+  await api.presets.blocks.get("preset-1", "block-1");
+  // @ts-expect-error Creation requires an explicit cache-revision precondition.
+  await api.presets.blocks.create("preset-1", editableBlock);
+  // @ts-expect-error Legacy index-only options do not carry CAS authority.
+  await api.presets.blocks.create("preset-1", editableBlock, { index: 0 });
+  // @ts-expect-error Update requires an occurrence plus cache-revision authority.
+  await api.presets.blocks.update("preset-1", "block-1", { name: "legacy" });
+  // @ts-expect-error An occurrence without expectedCacheRevision cannot authorize update.
+  await api.presets.blocks.update("preset-1", occurrence, { name: "stale" });
+  // @ts-expect-error Delete no longer accepts a bare block id.
+  await api.presets.blocks.delete("preset-1", "block-1");
+  // @ts-expect-error An occurrence without expectedCacheRevision cannot authorize delete.
+  await api.presets.blocks.delete("preset-1", occurrence);
+  // @ts-expect-error Prompt-block occurrence coordinates are immutable.
+  occurrence.promptOrder = 1;
+  // @ts-expect-error Mutation revision authority is immutable.
+  target.expectedCacheRevision = 8;
+  // @ts-expect-error Create revision authority is immutable.
+  createAuthority.expectedCacheRevision = 8;
   const presetCreateFromSnapshot = {
     name: "forbidden preset",
     provider: "test",
@@ -225,6 +266,7 @@ export async function compilePresetSnapshotContract(api: SpindleAPI): Promise<vo
   void fromGet;
   void fromCreate;
   void fromUpdate;
+  void fromDelete;
   void category;
   void child;
   void forbiddenBlockPlacement;

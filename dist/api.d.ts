@@ -96,16 +96,21 @@ export interface InterceptorMatchDTO {
 }
 export interface InterceptorRegistrationMatchOptions {
     match?: InterceptorMatchDTO;
+    /** Stop generation on failure instead of continuing with the previous prompt. */
+    required?: boolean;
 }
 export interface InterceptorRegistrationOptions {
     priority?: number;
     match?: InterceptorMatchDTO;
+    required?: boolean;
 }
 /**
  * Host-owned, immutable context for one bound interceptor callback.
  * `signal` is local to the worker invocation and is never serialized.
  */
 export interface InterceptorContextDTO {
+    /** Host-selected execution document, pinned for this generation. Absent when no main frontend is connected. */
+    readonly frontendSessionId?: string;
     readonly userId: string;
     readonly chatId: string;
     readonly generationId: string;
@@ -278,6 +283,10 @@ export interface MacroInterceptorCtxDTO {
     readonly commit: boolean;
     readonly phase: MacroInterceptorPhase;
     readonly sourceHint?: string;
+    /** Present when this extension is the opted-in evaluator for the complete source. */
+    readonly sourceOwner?: {
+        readonly extensionIdentifier: string;
+    };
     /**
      * User ID that initiated the macro resolution (when available). Relevant
      * for operator-scoped extensions that need to route work through other
@@ -1356,6 +1365,24 @@ export type UserPresetUpdateDTO = Partial<UserPresetCreateDTO> & {
 };
 export type PromptBlockCreateDTO = Partial<PromptBlockDTO>;
 export type PromptBlockUpdateDTO = Partial<Omit<PromptBlockDTO, "id">>;
+/** Identifies one exact occurrence in a preset's ordered prompt-block list. */
+export interface PromptBlockOccurrenceDTO {
+    readonly blockId: string;
+    readonly promptOrder: number;
+}
+/** Exact prompt-block occurrence plus the preset revision required for mutation. */
+export interface PromptBlockMutationTargetDTO extends PromptBlockOccurrenceDTO {
+    readonly expectedCacheRevision: number;
+}
+/** Revision authority serialized inside a prompt-block create request. */
+export interface PromptBlockCreateAuthorityDTO {
+    readonly expectedCacheRevision: number;
+    readonly index?: number;
+}
+/** Public create options; user scope remains outside the wire authority object. */
+export interface PromptBlockCreateOptionsDTO extends PromptBlockCreateAuthorityDTO {
+    readonly userId?: string;
+}
 /**
  * Safe representation of a world book exposed to extensions.
  */
@@ -3161,6 +3188,7 @@ export type WorkerToHost = {
     registrationId: string;
     priority?: number;
     match?: InterceptorMatchDTO;
+    required?: boolean;
 } | {
     type: "unregister_interceptor";
     registrationId: string;
@@ -3507,13 +3535,16 @@ export type WorkerToHost = {
     type: "register_context_handler";
     priority?: number;
     timeoutMs?: number;
+    required?: boolean;
 } | {
     type: "context_handler_result";
     requestId: string;
     context: unknown;
+    error?: string;
 } | {
     type: "register_macro_interceptor";
     priority?: number;
+    handlesOwnedSources?: boolean;
 } | {
     type: "macro_interceptor_result";
     requestId: string;
@@ -3541,6 +3572,20 @@ export type WorkerToHost = {
     type: "frontend_message";
     payload: unknown;
     userId?: string;
+    frontendSessionId?: string;
+} | {
+    type: "runtime_state_read";
+    requestId: string;
+    chatId: string;
+    characterId: string;
+    userId?: string;
+} | {
+    type: "runtime_state_write";
+    requestId: string;
+    chatId: string;
+    command: import("./runtime-state.js").RuntimeStateCommandDTO;
+    userId?: string;
+    mutationId?: string;
 } | {
     type: "user_storage_read";
     requestId: string;
@@ -3807,27 +3852,27 @@ export type WorkerToHost = {
     type: "preset_blocks_get";
     requestId: string;
     presetId: string;
-    blockId: string;
+    occurrence: PromptBlockOccurrenceDTO;
     userId?: string;
 } | {
     type: "preset_blocks_create";
     requestId: string;
     presetId: string;
     input: PromptBlockCreateDTO;
-    index?: number;
+    options: PromptBlockCreateAuthorityDTO;
     userId?: string;
 } | {
     type: "preset_blocks_update";
     requestId: string;
     presetId: string;
-    blockId: string;
+    target: PromptBlockMutationTargetDTO;
     input: PromptBlockUpdateDTO;
     userId?: string;
 } | {
     type: "preset_blocks_delete";
     requestId: string;
     presetId: string;
-    blockId: string;
+    target: PromptBlockMutationTargetDTO;
     userId?: string;
 } | {
     type: "preset_categories_list";
@@ -4696,6 +4741,10 @@ export type HostToWorker = {
     requestId: string;
     context: unknown;
 } | {
+    type: "context_handler_abort";
+    requestId: string;
+    reason: string;
+} | {
     type: "macro_interceptor_request";
     requestId: string;
     ctx: MacroInterceptorCtxDTO;
@@ -4757,6 +4806,7 @@ export type HostToWorker = {
     type: "frontend_message";
     payload: unknown;
     userId: string;
+    frontendSessionId?: string;
 } | {
     type: "frontend_process_lifecycle";
     event: FrontendProcessLifecycleEventDTO;

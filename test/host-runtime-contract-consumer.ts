@@ -3,6 +3,9 @@ import type {
   HostToWorker,
   InterceptorBreakdownEntryDTO,
   InterceptorResultDTO,
+  PromptBlockCreateAuthorityDTO,
+  PromptBlockMutationTargetDTO,
+  PromptBlockOccurrenceDTO,
   SpindleAPI,
   SpindleFrontendContext,
   SpindleHostDescriptorV1,
@@ -63,6 +66,35 @@ const wireResult: WorkerToHost = {
   finalResponse,
 };
 
+const presetBlockOccurrence: PromptBlockOccurrenceDTO = { blockId: "duplicate-block", promptOrder: 1 };
+const presetBlockTarget: PromptBlockMutationTargetDTO = { ...presetBlockOccurrence, expectedCacheRevision: 8 };
+const presetBlockCreateAuthority: PromptBlockCreateAuthorityDTO = { expectedCacheRevision: 8, index: 1 };
+const presetBlocksGet: WorkerToHost = { type: "preset_blocks_get", requestId: "get-block", presetId: "preset-1", occurrence: presetBlockOccurrence, userId: "user-1" };
+const presetBlocksCreate: WorkerToHost = { type: "preset_blocks_create", requestId: "create-block", presetId: "preset-1", input: { content: "new block" }, options: presetBlockCreateAuthority, userId: "user-1" };
+const presetBlocksUpdate: WorkerToHost = { type: "preset_blocks_update", requestId: "update-block", presetId: "preset-1", target: presetBlockTarget, input: { content: "updated block" }, userId: "user-1" };
+const presetBlocksDelete: WorkerToHost = { type: "preset_blocks_delete", requestId: "delete-block", presetId: "preset-1", target: presetBlockTarget, userId: "user-1" };
+// @ts-expect-error ID-only reads cannot distinguish duplicate prompt blocks.
+const legacyPresetBlocksGet: WorkerToHost = { type: "preset_blocks_get", requestId: "legacy-get", presetId: "preset-1", blockId: "duplicate-block" };
+// @ts-expect-error Creating a prompt block requires revision authority.
+const legacyPresetBlocksCreate: WorkerToHost = { type: "preset_blocks_create", requestId: "legacy-create", presetId: "preset-1", input: { content: "unsafe" } };
+// @ts-expect-error The former top-level index does not authorize create.
+const legacyPresetBlocksCreateIndex: WorkerToHost = { type: "preset_blocks_create", requestId: "legacy-index", presetId: "preset-1", input: { content: "unsafe" }, index: 0 };
+// @ts-expect-error Update must include occurrence and revision authority.
+const legacyPresetBlocksUpdate: WorkerToHost = { type: "preset_blocks_update", requestId: "legacy-update", presetId: "preset-1", blockId: "duplicate-block", input: { content: "unsafe" } };
+// @ts-expect-error Delete must include occurrence and revision authority.
+const legacyPresetBlocksDelete: WorkerToHost = { type: "preset_blocks_delete", requestId: "legacy-delete", presetId: "preset-1", blockId: "duplicate-block" };
+// @ts-expect-error User scope belongs at the top-level wire field, not in options.
+const nestedUserScope: WorkerToHost = { type: "preset_blocks_create", requestId: "nested-user-scope", presetId: "preset-1", input: {}, options: { expectedCacheRevision: 8, userId: "user-1" } };
+void presetBlocksGet;
+void presetBlocksCreate;
+void presetBlocksUpdate;
+void presetBlocksDelete;
+void legacyPresetBlocksGet;
+void legacyPresetBlocksCreate;
+void legacyPresetBlocksCreateIndex;
+void legacyPresetBlocksUpdate;
+void legacyPresetBlocksDelete;
+void nestedUserScope;
 const init: HostToWorker = {
   type: "init",
   manifest: {

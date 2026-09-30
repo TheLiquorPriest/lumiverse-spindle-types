@@ -9,7 +9,7 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "lumiverse-spindle-types": ["./src/index.ts"]
+      "lumiverse-spindle-types": ["./dist/index.d.ts"]
     }
   },
   "include": [
